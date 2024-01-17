@@ -1,6 +1,7 @@
 import react, { useReducer } from "react";
 import DigitButton from "./DigitButton";
 import "./App.css";
+import OperationButton from "./Operation";
 
 export const ACTIONS = {
   ADD_DIGIT: "add-digit",
@@ -13,16 +14,79 @@ export const ACTIONS = {
 function reducer(state, { type, payload }) {
   switch (type) {
     case ACTIONS.ADD_DIGIT:
+      if (payload.digit === "0" && state.currentOperand === "0") {
+        return state;
+      }
+      if (payload.digit === "." && state.currentOperand.includes(".")) {
+        return state;
+      }
       return {
         ...state,
-        currrentOperand: `${currentOperand || ""}${payload.digit}`,
+        currentOperand: `${state.currentOperand || ""}${payload.digit}`,
       };
+
+    case ACTIONS.CHOOSE_OPERATION:
+      if (state.currentOperand == null && state.previousOperand == null) {
+        return state;
+      }
+      if (state.currentOperand == null) {
+        return {
+          ...state,
+          operation: payload.operation,
+          previousOperand: state.currentOperand,
+          currentOperand: null,
+        };
+      }
+      return {
+        ...state,
+        previousOperand: evaluate(state),
+        operation: payload.operation,
+        currentOperand: null,
+      };
+
+    case ACTIONS.CLEAR:
+      return {};
+
+    default:
+      return state;
   }
 }
 
+function evaluate({ currentOperand, previousOperand, operation }) {
+  const prev = parseFloat(previousOperand);
+  const current = parseFloat(currentOperand);
+
+  if (isNaN(prev) || isNaN(current)) {
+    return 0; // Return a number instead of a string
+  }
+
+  let computation = 0;
+
+  switch (operation) {
+    case "+":
+      computation = prev + current;
+      break;
+    case "-":
+      computation = prev - current;
+      break;
+    case "*":
+      computation = prev * current;
+      break;
+    case "/":
+      computation = prev / current;
+      break;
+    default:
+      return 0;
+  }
+
+  return computation;
+}
+
 export default function App() {
-  const [{ currrentOperand, previousOperand, operation }, dispatch] =
-    useReducer(reducer, {});
+  const [{ currentOperand, previousOperand, operation }, dispatch] = useReducer(
+    reducer,
+    {}
+  );
 
   return (
     <div className="calculator-grid">
@@ -30,25 +94,37 @@ export default function App() {
         <div className="previous-operand">
           {previousOperand} {operation}
         </div>
-        <div className="current-operand">{currrentOperand}</div>
+        <div className="current-operand">{currentOperand}</div>
       </div>
-      <button className="span-2">AC</button>
+      <button
+        className="span-2"
+        onClick={() => dispatch({ type: ACTIONS.CLEAR })}
+      >
+        AC
+      </button>
       <button>DEL</button>
-      <DigitButton digit="/" dispatch={dispatch} />
-      <button>1</button>
-      <button>2</button>
-      <button>3</button>
-      <button>*</button>
-      <button>4</button>
-      <button>5</button>
-      <button>6</button>
-      <button>+</button>
-      <button>7</button>
-      <button>8</button>
-      <button>9</button>
-      <button>-</button>
-      <button>.</button>
-      <button>0</button>
+      <OperationButton operation="/" dispatch={dispatch} />
+
+      <DigitButton digit="1" dispatch={dispatch} />
+      <DigitButton digit="2" dispatch={dispatch} />
+      <DigitButton digit="3" dispatch={dispatch} />
+
+      <OperationButton operation="*" dispatch={dispatch} />
+
+      <DigitButton digit="4" dispatch={dispatch} />
+      <DigitButton digit="5" dispatch={dispatch} />
+      <DigitButton digit="6" dispatch={dispatch} />
+
+      <OperationButton operation="+" dispatch={dispatch} />
+
+      <DigitButton digit="7" dispatch={dispatch} />
+      <DigitButton digit="8" dispatch={dispatch} />
+      <DigitButton digit="9" dispatch={dispatch} />
+
+      <OperationButton operation="-" dispatch={dispatch} />
+
+      <DigitButton digit="." dispatch={dispatch} />
+      <DigitButton digit="0" dispatch={dispatch} />
       <button className="span-2">=</button>
     </div>
   );
