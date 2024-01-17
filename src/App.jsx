@@ -46,9 +46,6 @@ function reducer(state, { type, payload }) {
 
     case ACTIONS.CLEAR:
       return {};
-
-    default:
-      return state;
   }
 }
 
@@ -57,10 +54,9 @@ function evaluate({ currentOperand, previousOperand, operation }) {
   const current = parseFloat(currentOperand);
 
   if (isNaN(prev) || isNaN(current)) {
-    return 0; // Return a number instead of a string
+    return "";
   }
-
-  let computation = 0;
+  let computation = "";
 
   switch (operation) {
     case "+":
@@ -75,11 +71,8 @@ function evaluate({ currentOperand, previousOperand, operation }) {
     case "/":
       computation = prev / current;
       break;
-    default:
-      return 0;
   }
-
-  return computation;
+  return computation.toString();
 }
 
 export default function App() {
